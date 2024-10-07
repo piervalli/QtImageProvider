@@ -42,7 +42,6 @@ public:
         }
         manager = QSharedPointer<QNetworkAccessManager>(new QNetworkAccessManager(this));
 
-        // Connect the finished signal to a slot
         m_hash=calculateMD5(m_id);
         QSettings settings(QStringLiteral("www/cache/_%1").arg(m_hash), QSettings::IniFormat);
         settings.sync();
@@ -57,6 +56,7 @@ public:
                 if (file.open(QIODevice::ReadOnly))
                 {
                     const auto image = QImage::fromData(file.readAll());
+                    file.close();
                     finalize(image);
                     return;
                 }
@@ -129,10 +129,11 @@ private slots:
                 qDebug() << "Image saved to:" << fileName;
                 settings.setValue("Last-modified", lastModified);
                 settings.setValue("filename", QStringLiteral("_%1.byte").arg(m_hash));
-                settings.sync();
             } else {
                 qCritical() << "Failed to save image to file.";
+                lastModified=QString{};
             }
+            settings.sync();
 
         }while(false);
 
